@@ -18,6 +18,29 @@ from cryptography import x509
 def encrypt_string(str_input):
     return hashlib.sha256(str_input.encode()).hexdigest()
 
+# Generates private key and public key via RSA algorithm
+def generate_rsa_keys():
+    # Create private key
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+        backend=default_backend()
+    )
+    # Create public key
+    public_key = private_key.public_key()
+    # Convert private key to printing format
+    private_key_print = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption()
+    ).decode("utf-8")
+    # Convert public key to printing format
+    public_key_print = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    ).decode("utf-8")
+    print(private_key_print, public_key_print)
+
 
 if __name__ == '__main__':
     print('Welcome!')
@@ -38,8 +61,7 @@ if __name__ == '__main__':
             # TODO Check Proof of inclusion
             print('Check Proof oc inclusion')
         if cmd_list[0] == '5':
-            # TODO Create private key and public key with RSA
-            print('Create private key and public key with RSA')
+            generate_rsa_keys()
         if cmd_list[0] == '6':
             # TODO Create signature of the root of the tree
             print('Create signature of the root of the tree')
