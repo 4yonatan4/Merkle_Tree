@@ -2,6 +2,7 @@
 # Shilo Lieopold ?????, Yonatan Gat 203625264
 
 import hashlib
+import math
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.backends import default_backend
@@ -9,6 +10,121 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
+
+class MerkleTree:
+    def __init__(self):
+        self.root = None
+        self.internal_nodes = []
+        self.leaves = []
+        self.num_of_leaves = 0
+
+    def insert_leaf_old(self, leaf_value):
+        # Create leaf
+        new_leaf = MerkleTreeNode(leaf_value)
+        self.leaves.append(new_leaf)
+        self.num_of_leaves += 1
+        # Now we need to found the place of the leaf in the tree
+        # and update all hash_values in the tree
+
+        # First leaf
+        if self.root is None:
+            new_leaf_dup = MerkleTreeNode(leaf_value)
+            con_children_values = new_leaf.hash_value + new_leaf_dup.hash_value
+            self.root = MerkleTreeNode(con_children_values)
+            self.root.left = new_leaf
+            self.root.right = new_leaf_dup
+            new_leaf.father = self.root
+        # Not first leaf
+        else:
+            leaf_num = self.num_of_leaves - 1
+            # Check if leaf_num is odd or even
+            # leaf_num is even - we need to add a new level to the tree
+            if leaf_num % 2 == 0:
+                NotImplemented
+                # Get the depth of the last tree (before we add the new leaf)
+                depth = math.log2(self.num_of_leaves - 1)
+                # Create duplicate of new leaf
+                new_leaf_dup = MerkleTreeNode(leaf_value)
+                # Create levels according to the depth
+                # new_root = MerkleTreeNode()
+                # update root
+            # leaf_num is odd - replace the old right leaf in the new leaf
+            # and update the internal nodes
+            else:
+                # Get previous leaf
+                previous_leaf = self.leaves[self.num_of_leaves - 2]
+                # Get father of the previous leaf - this is the father of the new leaf too
+                father = previous_leaf.father
+                # Update the right child to be the new leaf
+                father.right = new_leaf
+                # Update the father of the new leaf
+                new_leaf.father = father
+                # Update hash values of the tree according to the new leaf
+                self.update_hash_values(new_leaf)
+
+    def insert_leaf(self, leaf_value):
+        # Create leaf
+        new_leaf = MerkleTreeNode(leaf_value)
+        self.leaves.append(new_leaf)
+        self.num_of_leaves += 1
+        # Now we need to found the place of the leaf in the tree
+        # and update all hash_values in the tree
+
+        # First leaf
+        if self.root is None:
+            self.root = new_leaf
+        # Not first leaf
+        else:
+            leaf_num = self.num_of_leaves - 1
+            # Check if leaf_num is odd or even
+            # leaf_num is even - we need to add a new level to the tree
+            if leaf_num % 2 == 0:
+                # Create new root
+                new_root = MerkleTreeNode(self.root.hash_value + new_leaf.hash_value)
+                new_root.left = self.root
+                self.root.father = new_root
+                new_root.right = new_leaf
+                # Update root
+                self.root = new_root
+                new_leaf.father = self.root
+            # leaf_num is odd - replace the old right leaf in the new leaf
+            # and update the internal nodes
+            else:
+                # Get the previous leaf
+                prev_leaf = self.leaves[self.num_of_leaves - 2]
+                # Create new node to be the father of the new leaf and the previous leaf
+                father = MerkleTreeNode(prev_leaf.hash_value + new_leaf.hash_value)
+                father.father = prev_leaf.father
+                father.left = prev_leaf
+                prev_leaf.father = father
+                father.right = new_leaf
+                new_leaf.father = father
+                # In case of the second leaf
+                if self.root == prev_leaf:
+                    self.root = father
+                else:
+                    father.father.right = father
+
+    def update_hash_values(self, new_leaf):
+        curr = new_leaf
+        # Iterate and update until the root
+        while curr != self.root:
+            father = curr.father
+            father.value = father.left.hash_value + father.right.hash_value
+            father.hash_value = encrypt_string(father.value)
+            curr = father
+
+
+
+
+
+class MerkleTreeNode:
+    def __init__(self, value):
+        self.value = value
+        self.hash_value = encrypt_string(self.value)
+        self.right = None
+        self.left = None
+        self.father = None
 
 
 # Generate symmetric key
@@ -73,17 +189,21 @@ def signature_verification(public_key, signature, message):
 
 
 if __name__ == '__main__':
+    merkle_tree = None
     print('Welcome!')
     print('Type \'quit\' to close the app')
     command = input(">>> ")
     while command != 'exit':
         cmd_list = command.split()
         if cmd_list[0] == '1':
-            # TODO Add leaf to the tree
-            print('add leaf')
+            # Create tree at the first time
+            if merkle_tree is None:
+                merkle_tree = MerkleTree()
+            # Add the leaf to the tree
+            merkle_tree.insert_leaf(cmd_list[1])
         if cmd_list[0] == '2':
-            # TODO Calculate the root of the tree
-            print('Calculate the root of the tree')
+            if merkle_tree is not None:
+                print(merkle_tree.root.hash_value)
         if cmd_list[0] == '3':
             # TODO Create Proof of inclusion
             print('Create Proof oc inclusion')
