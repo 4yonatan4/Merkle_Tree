@@ -8,7 +8,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
-from cryptography import x509
+from cryptography.hazmat.primitives.asymmetric import padding
 
 
 # Generate symmetric key
@@ -17,6 +17,7 @@ from cryptography import x509
 # Get string and return sha256 of the string
 def encrypt_string(str_input):
     return hashlib.sha256(str_input.encode()).hexdigest()
+
 
 # Generates private key and public key via RSA algorithm
 def generate_rsa_keys():
@@ -42,6 +43,35 @@ def generate_rsa_keys():
     print(private_key_print, public_key_print)
 
 
+def sign_on_massage(key):
+    root = encrypt_string("aaa")
+    b = bytes(root, 'utf-8')
+    signature = key.sign(
+        b,
+        padding.PSS(
+            mgf=padding.MGF1(hashes.SHA256()),
+            salt_length=padding.PSS.MAX_LENGTH
+        ),
+        hashes.SHA256()
+    )
+    print(str(signature))
+
+
+def signature_verification(public_key, signature, message):
+    if(public_key.verify(
+        signature,
+        message,
+        padding.PSS(
+            mgf=padding.MGF1(hashes.SHA256()),
+            salt_length=padding.PSS.MAX_LENGTH
+        ),
+        hashes.SHA256()
+    )):
+        print("True")
+    else:
+        print("False")
+
+
 if __name__ == '__main__':
     print('Welcome!')
     print('Type \'quit\' to close the app')
@@ -63,9 +93,15 @@ if __name__ == '__main__':
         if cmd_list[0] == '5':
             generate_rsa_keys()
         if cmd_list[0] == '6':
-            # TODO Create signature of the root of the tree
-            print('Create signature of the root of the tree')
+            private_key = rsa.generate_private_key(
+                public_exponent=65537,
+                key_size=2048,
+                backend=default_backend()
+            )
+            # Create public key
+            public_key = private_key.public_key()
+            sign_on_massage(private_key)
         if cmd_list[0] == '7':
             # TODO Valid signature
-            print('Valid signature')
+            signature_verification(cmd_list[1], cmd_list[2], cmd_list[3])
         command = input(">>> ")
