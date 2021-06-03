@@ -14,58 +14,17 @@ from cryptography.hazmat.primitives.asymmetric import padding
 class MerkleTree:
     def __init__(self):
         self.root = None
-        self.internal_nodes = []
         self.leaves = []
         self.num_of_leaves = 0
+        self.depth = 0
 
-    def insert_leaf_old(self, leaf_value):
-        # Create leaf
-        new_leaf = MerkleTreeNode(leaf_value)
-        self.leaves.append(new_leaf)
-        self.num_of_leaves += 1
-        # Now we need to found the place of the leaf in the tree
-        # and update all hash_values in the tree
-
-        # First leaf
-        if self.root is None:
-            new_leaf_dup = MerkleTreeNode(leaf_value)
-            con_children_values = new_leaf.hash_value + new_leaf_dup.hash_value
-            self.root = MerkleTreeNode(con_children_values)
-            self.root.left = new_leaf
-            self.root.right = new_leaf_dup
-            new_leaf.father = self.root
-        # Not first leaf
-        else:
-            leaf_num = self.num_of_leaves - 1
-            # Check if leaf_num is odd or even
-            # leaf_num is even - we need to add a new level to the tree
-            if leaf_num % 2 == 0:
-                NotImplemented
-                # Get the depth of the last tree (before we add the new leaf)
-                depth = math.log2(self.num_of_leaves - 1)
-                # Create duplicate of new leaf
-                new_leaf_dup = MerkleTreeNode(leaf_value)
-                # Create levels according to the depth
-                # new_root = MerkleTreeNode()
-                # update root
-            # leaf_num is odd - replace the old right leaf in the new leaf
-            # and update the internal nodes
-            else:
-                # Get previous leaf
-                previous_leaf = self.leaves[self.num_of_leaves - 2]
-                # Get father of the previous leaf - this is the father of the new leaf too
-                father = previous_leaf.father
-                # Update the right child to be the new leaf
-                father.right = new_leaf
-                # Update the father of the new leaf
-                new_leaf.father = father
-                # Update hash values of the tree according to the new leaf
-                self.update_hash_values(new_leaf)
 
     def insert_leaf(self, leaf_value):
         # Create leaf
         new_leaf = MerkleTreeNode(leaf_value)
         self.leaves.append(new_leaf)
+        if self.num_of_leaves > 0:
+            self.depth = math.ceil(math.log2(self.num_of_leaves))
         self.num_of_leaves += 1
         # Now we need to found the place of the leaf in the tree
         # and update all hash_values in the tree
@@ -79,14 +38,31 @@ class MerkleTree:
             # Check if leaf_num is odd or even
             # leaf_num is even - we need to add a new level to the tree
             if leaf_num % 2 == 0:
-                # Create new root
-                new_root = MerkleTreeNode(self.root.hash_value + new_leaf.hash_value)
-                new_root.left = self.root
-                self.root.father = new_root
-                new_root.right = new_leaf
-                # Update root
-                self.root = new_root
-                new_leaf.father = self.root
+                # Check if the tree is full
+                if (2 ** self.depth) == self.num_of_leaves - 1:
+                    # Create new root
+                    new_root = MerkleTreeNode(self.root.hash_value + new_leaf.hash_value)
+                    new_root.left = self.root
+                    self.root.father = new_root
+                    new_root.right = new_leaf
+                    # Update root
+                    self.root = new_root
+                    new_leaf.father = self.root
+                # Tree is not full
+                else:
+                    # Get the previous leaf
+                    prev_leaf = self.leaves[self.num_of_leaves - 2]
+                    # Get the father of the previous leaf
+                    old_father = prev_leaf.father
+                    new_father = MerkleTreeNode(old_father.hash_value + new_leaf.hash_value)
+                    new_father.father = old_father.father
+                    old_father.father.right = new_father
+                    new_father.left = old_father
+                    old_father.father = new_father
+                    new_father.right = new_leaf
+                    new_leaf.father = new_father
+                    # Update hash value until the root
+                    self.update_hash_values(new_father)
             # leaf_num is odd - replace the old right leaf in the new leaf
             # and update the internal nodes
             else:
@@ -104,9 +80,10 @@ class MerkleTree:
                     self.root = father
                 else:
                     father.father.right = father
+                    self.update_hash_values(father)
 
-    def update_hash_values(self, new_leaf):
-        curr = new_leaf
+    def update_hash_values(self, node):
+        curr = node
         # Iterate and update until the root
         while curr != self.root:
             father = curr.father
@@ -195,6 +172,9 @@ if __name__ == '__main__':
     command = input(">>> ")
     while command != 'exit':
         cmd_list = command.split()
+        if len(cmd_list) == 0:
+            command = input(">>> ")
+            continue
         if cmd_list[0] == '1':
             # Create tree at the first time
             if merkle_tree is None:
