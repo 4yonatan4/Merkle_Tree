@@ -182,9 +182,29 @@ def signature_verification(public_key):
     except:
         print("False")
 
-
-def proof_of_inclusion(leaf_num):
-    print("")
+# Print Proof Of Inclusion of the current tree and specific leaf
+def proof_of_inclusion(merkle_tree, leaf_num):
+    if merkle_tree is None or merkle_tree.num_of_leaves == 0 \
+            or leaf_num >= merkle_tree.num_of_leaves or leaf_num < 0:
+        print("")
+        return
+    # Add the root of the tree
+    hash_list = [merkle_tree.root.hash_value]
+    # In case of just one node
+    if merkle_tree.num_of_leaves == 1:
+        print(*hash_list)
+        return
+    # Now we need to go up until the root and take one node from every level
+    curr = merkle_tree.leaves[leaf_num]
+    while curr != merkle_tree.root:
+        father = curr.father
+        # Check if curr is right or left child
+        if father.right == curr:
+            hash_list.append("0" + father.left.hash_value)
+        else:
+            hash_list.append("1" + father.right.hash_value)
+        curr = father
+    print(*hash_list)
 
 
 if __name__ == '__main__':
@@ -210,8 +230,9 @@ if __name__ == '__main__':
             else:
                 print("")
         if cmd_list[0] == '3':
-            # TODO Create Proof of inclusion
-            print('Create Proof of inclusion')
+            # Proof of inclusion - get leaf num
+            if len(cmd_list) == 2:
+                proof_of_inclusion(merkle_tree, int(cmd_list[1]))
         if cmd_list[0] == '4':
             # TODO Check Proof of inclusion
             print('Check Proof oc inclusion')
