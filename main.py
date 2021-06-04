@@ -182,8 +182,11 @@ if __name__ == '__main__':
             # Add the leaf to the tree
             merkle_tree.insert_leaf(cmd_list[1])
         if cmd_list[0] == '2':
+            # Print the root of the tree
             if merkle_tree is not None:
                 print(merkle_tree.root.hash_value)
+            else:
+                print("")
         if cmd_list[0] == '3':
             # TODO Create Proof of inclusion
             print('Create Proof oc inclusion')
