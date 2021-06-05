@@ -182,6 +182,7 @@ def signature_verification(public_key):
     except:
         print("False")
 
+
 # Print Proof Of Inclusion of the current tree and specific leaf
 def proof_of_inclusion(merkle_tree, leaf_num):
     if merkle_tree is None or merkle_tree.num_of_leaves == 0 \
@@ -207,6 +208,19 @@ def proof_of_inclusion(merkle_tree, leaf_num):
     print(*hash_list)
 
 
+def check_proof_of_inclusion(leaf_value, root, hash_list):
+    res = encrypt_string(leaf_value)
+    for i in hash_list:
+        if i[0] == '0':
+            res = encrypt_string(i[1:] + res)
+        else:
+            res = encrypt_string(res + i[1:])
+    if res == root:
+        print("True")
+        return
+    print("False")
+
+
 if __name__ == '__main__':
     merkle_tree = None
     print('Welcome!')
@@ -221,8 +235,9 @@ if __name__ == '__main__':
             # Create tree at the first time
             if merkle_tree is None:
                 merkle_tree = MerkleTree()
-            # Add the leaf to the tree
-            merkle_tree.insert_leaf(cmd_list[1])
+            if len(cmd_list) == 2:
+                # Add the leaf to the tree
+                merkle_tree.insert_leaf(cmd_list[1])
         if cmd_list[0] == '2':
             # Print the root of the tree
             if merkle_tree is not None:
@@ -234,8 +249,12 @@ if __name__ == '__main__':
             if len(cmd_list) == 2:
                 proof_of_inclusion(merkle_tree, int(cmd_list[1]))
         if cmd_list[0] == '4':
-            # TODO Check Proof of inclusion
-            print('Check Proof oc inclusion')
+            if len(cmd_list) >= 3:
+                leaf_value = cmd_list[1]
+                root = cmd_list[2]
+                hash_list = cmd_list[3:]
+                # Check Proof of inclusion
+                check_proof_of_inclusion(leaf_value, root, hash_list)
         if cmd_list[0] == '5':
             generate_rsa_keys()
         if cmd_list[0] == '6':
