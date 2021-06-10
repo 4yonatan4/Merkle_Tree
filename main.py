@@ -257,6 +257,8 @@ if __name__ == '__main__':
                 hash_list = cmd_list[3:]
                 # Check Proof of inclusion
                 check_proof_of_inclusion(leaf_value, root, hash_list)
+            else:
+                print("")
         if cmd_list[0] == '5':
             generate_rsa_keys()
         if cmd_list[0] == '6':

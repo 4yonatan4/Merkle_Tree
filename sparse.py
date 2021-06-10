@@ -10,7 +10,7 @@ class SparseMerkleTree:
     def __init__(self):
         self.depth_list = self.init_depth_list()
         self.root = self.depth_list[0]
-        self.nodes_values = {}
+        self.nodes = {}
 
     def init_depth_list(self):
         depth_list = [""] * 256
@@ -23,8 +23,25 @@ class SparseMerkleTree:
             i -= 1
         return
 
+
     def set_leaf(self, digest_leaf):
 
 
 
 if __name__ == '__main__':
+    sparseMerkleTree = SparseMerkleTree()
+    print('Welcome!')
+    print('Type \'quit\' to close the app')
+    command = input(">>> ")
+    while command != 'exit':
+        cmd_list = command.split()
+        if cmd_list[0] == '8':
+
+        if cmd_list[0] == '9':
+            print(sparseMerkleTree.root)
+        if cmd_list[0] == '10':
+
+        if cmd_list[0] == '11':
+
+
+        command = input(">>> ")
