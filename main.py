@@ -220,6 +220,8 @@ def check_proof_of_inclusion(leaf_value, root, hash_list):
         return
     print("False")
 
+# -------------------------------------------- SPARSE MERKLE TREE --------------------------------------------
+
 
 if __name__ == '__main__':
     merkle_tree = None
