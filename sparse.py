@@ -83,6 +83,43 @@ class SparseMerkleTree:
             self.root = encrypt_string(self.nodes[digest_binary] + other_value)
 
 
+def test_proof(cmd, tree):
+    dep = 0
+    dig = cmd[1]
+    dig = str(bin(int(dig, 16)))[2:].zfill(256)
+    # dig = int(dig, 16)
+    val = cmd[2]
+    value_calculate = ""
+    root = cmd[3]
+    first_val = cmd[4]
+    tree_d = tree.depth_list
+    for i in tree_d:
+        if i == first_val:
+            value_calculate = i
+            break
+        else:
+            dep += 1
+    length = len(cmd)
+    for x in range(4, length):
+        if dig[dep] == '1':
+            value_calculate = encrypt_string(cmd[x] + value_calculate)
+            hashlib.sha256(value_calculate.encode()).hexdigest()
+        else:
+            value_calculate = encrypt_string(value_calculate + cmd[x])
+            hashlib.sha256(value_calculate.encode()).hexdigest()
+
+    if root == value_calculate:
+        if val == '1':
+            print(True)
+        else:
+            print(False)
+    else:
+        if val == '1':
+            print(False)
+        else:
+            print(True)
+
+
 if __name__ == '__main__':
     sparseMerkleTree = SparseMerkleTree()
     print('Welcome!')
@@ -98,6 +135,6 @@ if __name__ == '__main__':
         if cmd_list[0] == '9':
             print(sparseMerkleTree.root)
         # if cmd_list[0] == '10':
-        #
-        # if cmd_list[0] == '11':
+        if cmd_list[0] == '11':
+            test_proof(cmd_list, sparseMerkleTree)
         command = input(">>> ")
