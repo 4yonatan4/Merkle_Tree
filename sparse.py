@@ -82,6 +82,42 @@ class SparseMerkleTree:
         else:
             self.root = encrypt_string(self.nodes[digest_binary] + other_value)
 
+    def create_spars_proof(self, digest):
+        res = [self.root]
+        # Create array of bits from the digest
+        curr = self.str_to_binary(digest)
+        # Find the first node that not trivial
+        if not bool(self.nodes):
+            res.append(self.root)
+            print(*res)
+            return
+        not_trivial = None
+        prev = curr
+        while not_trivial is None:
+            if curr in self.nodes:
+                not_trivial = curr
+                break
+            prev = curr
+            curr = curr[:-1]
+            if len(curr) == 0:
+                break
+        if len(prev) < 256:
+            res.append(self.depth_list[len(prev)])
+        # Now we need to go up until the root and take the other child from every level
+        while len(prev) > 0:
+            other = None
+            if prev[-1] == "1":
+                other = prev[:-1] + "0"
+            else:
+                other = prev[:-1] + "1"
+            if other in self.nodes:
+                res.append(self.nodes[other])
+            else:
+                res.append(self.depth_list[len(prev)])
+            prev = prev[:-1]
+        print(*res)
+
+
 
 def test_proof(cmd, tree):
     dep = 0
@@ -120,6 +156,7 @@ def test_proof(cmd, tree):
             print(True)
 
 
+
 if __name__ == '__main__':
     sparseMerkleTree = SparseMerkleTree()
     print('Welcome!')
@@ -134,7 +171,10 @@ if __name__ == '__main__':
                 print("")
         if cmd_list[0] == '9':
             print(sparseMerkleTree.root)
-        # if cmd_list[0] == '10':
+        if cmd_list[0] == '10':
+            if len(cmd_list) == 2:
+                sparseMerkleTree.create_spars_proof(cmd_list[1])
         if cmd_list[0] == '11':
-            test_proof(cmd_list, sparseMerkleTree)
+            if len(cmd_list) >= 4:
+                test_proof(cmd_list, sparseMerkleTree)
         command = input(">>> ")
