@@ -164,8 +164,10 @@ def signature_verification(public_key):
     key_str = '\n'.join(public_key)
     en_key = bytes(key_str, 'utf-8')
     p_key = load_pem_public_key(en_key)
-    signature = a[3]
-    mes = a[4]
+    other_input = input()
+    other_input = other_input.split()
+    signature = other_input[0]
+    mes = other_input[1]
     dec_sig = base64.decodebytes(signature.encode())
     message = mes.encode()
     try:
